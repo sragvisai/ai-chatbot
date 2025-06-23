@@ -4,6 +4,7 @@ import type { Attachment, UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useEffect, useState } from 'react';
 import { useMessagePolling } from '@/hooks/use-message-polling';
+import { useLocalStorage } from 'usehooks-ts';
 import useSWR, { useSWRConfig } from 'swr';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
@@ -107,7 +108,11 @@ export function Chat({
   );
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const [pollAfter, setPollAfter] = useState<string | null>(null);
+  const [lastMessageId, setLastMessageId] = useLocalStorage<string | null>(
+    'chat_last_message_id',
+    null,
+  );
+  const [pollAfter, setPollAfter] = useState<string | null>(lastMessageId);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
   const handleSubmitWithPolling: typeof handleSubmit = async (event, options) => {
@@ -138,11 +143,9 @@ export function Chat({
 
       if (res.ok) {
         const data = await res.json();
-        if (data && data.messageId) {
-          setPollAfter(data.messageId);
-        } else {
-          setPollAfter(idForMessage);
-        }
+        const idToStore = data && data.messageId ? data.messageId : idForMessage;
+        setLastMessageId(idToStore);
+        setPollAfter(idToStore);
       }
     } catch (error) {
       if (error instanceof ChatSDKError) {
@@ -167,6 +170,7 @@ export function Chat({
     onMessage: (msg) => {
       setMessages((prev) => [...prev, msg]);
       setPollAfter(null);
+      setLastMessageId(null);
     },
   });
 
