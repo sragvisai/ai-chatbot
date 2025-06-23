@@ -12,9 +12,16 @@ import type { VisibilityType } from '@/components/visibility-selector';
 import { ChatSDKError } from '@/lib/errors';
 
 export async function POST(request: Request) {
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return new ChatSDKError('bad_request:api').toResponse();
+  }
+
   let body: PostRequestBody;
   try {
-    body = postRequestBodySchema.parse(await request.json());
+    body = postRequestBodySchema.parse(json);
   } catch {
     return new ChatSDKError('bad_request:api').toResponse();
   }
