@@ -108,18 +108,18 @@ export async function GET(request: Request) {
       if (after) url.searchParams.set('after', after);
       const res = await fetch(url);
       if (res.status === 200) {
-        const msg = await res.json();
-        if (msg) {
+        const data = await res.json();
+        if (data && data.messageContent && data.messageId) {
+          const msg = {
+            id: data.messageId,
+            role: 'assistant',
+            parts: [{ text: data.messageContent }],
+            attachments: [],
+            createdAt: new Date(),
+          };
           await saveMessages({
             messages: [
-              {
-                id: msg.id,
-                chatId,
-                role: msg.role,
-                parts: msg.parts,
-                attachments: msg.attachments ?? [],
-                createdAt: new Date(msg.createdAt ?? Date.now()),
-              },
+              { ...msg, chatId },
             ],
           });
           return Response.json(msg, { status: 200 });
