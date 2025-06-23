@@ -137,7 +137,12 @@ export function Chat({
       });
 
       if (res.ok) {
-        setPollAfter(idForMessage);
+        const data = await res.json();
+        if (data && data.messageId) {
+          setPollAfter(data.messageId);
+        } else {
+          setPollAfter(idForMessage);
+        }
       }
     } catch (error) {
       if (error instanceof ChatSDKError) {

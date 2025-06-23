@@ -2,7 +2,6 @@ import { auth } from '@/app/(auth)/auth';
 import {
   deleteChatById,
   getChatById,
-  getMessagesByChatId,
   saveChat,
   saveMessages,
 } from '@/lib/db/queries';
@@ -43,10 +42,12 @@ export async function POST(request: Request) {
     });
   }
 
+  const messageId = message.id || generateUUID();
+
   await saveMessages({
     messages: [
       {
-        id: message.id || generateUUID(),
+        id: messageId,
         chatId: id,
         role: message.role,
         parts: message.parts,
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
     }
   }
 
-  return Response.json({ status: 'accepted' }, { status: 202 });
+  return Response.json({ status: 'accepted', messageId }, { status: 202 });
 }
 
 export async function GET(request: Request) {
