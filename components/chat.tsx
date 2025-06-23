@@ -111,10 +111,40 @@ export function Chat({
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
   const handleSubmitWithPolling: typeof handleSubmit = async (event, options) => {
-    await handleSubmit(event, options);
-    const userMsg = [...messages].reverse().find((m) => m.role === 'user');
-    if (userMsg) {
-      setPollAfter(userMsg.id);
+    event?.preventDefault();
+
+    const idForMessage = generateUUID();
+    const userMessage: UIMessage = {
+      id: idForMessage,
+      role: 'user',
+      parts: [{ text: input }],
+      experimental_attachments: options?.experimental_attachments ?? [],
+    };
+
+    append(userMessage);
+
+    setInput('');
+
+    try {
+      const res = await fetchWithErrorHandlers('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          message: userMessage,
+          selectedVisibilityType: visibilityType,
+        }),
+      });
+
+      if (res.ok) {
+        setPollAfter(idForMessage);
+      }
+    } catch (error) {
+      if (error instanceof ChatSDKError) {
+        toast({ type: 'error', description: error.message });
+      } else {
+        console.error('Failed to send message', error);
+      }
     }
   };
 

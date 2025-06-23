@@ -52,13 +52,18 @@ export async function POST(request: Request) {
   const backendUrl = process.env.LOCAL_BACKEND_URL;
   if (backendUrl) {
     try {
-      await fetch(`${backendUrl}/messages`, {
+      const res = await fetch(`${backendUrl}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chatId: id, message }),
       });
+      if (!res.ok) {
+        console.error('Local backend responded with', res.status);
+        return new Response(null, { status: 500 });
+      }
     } catch (error) {
       console.error('Failed to call local backend', error);
+      return new Response(null, { status: 500 });
     }
   }
 
