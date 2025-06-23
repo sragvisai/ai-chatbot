@@ -3,6 +3,7 @@
 import type { Attachment, UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useEffect, useState } from 'react';
+import { useMessagePolling } from '@/hooks/use-message-polling';
 import useSWR, { useSWRConfig } from 'swr';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
@@ -106,7 +107,16 @@ export function Chat({
   );
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+  const [pollAfter, setPollAfter] = useState<string | null>(null);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
+
+  const handleSubmitWithPolling: typeof handleSubmit = async (event, options) => {
+    await handleSubmit(event, options);
+    const userMsg = [...messages].reverse().find((m) => m.role === 'user');
+    if (userMsg) {
+      setPollAfter(userMsg.id);
+    }
+  };
 
   useAutoResume({
     autoResume,
@@ -114,6 +124,15 @@ export function Chat({
     experimental_resume,
     data,
     setMessages,
+  });
+
+  useMessagePolling({
+    chatId: id,
+    after: pollAfter,
+    onMessage: (msg) => {
+      setMessages((prev) => [...prev, msg]);
+      setPollAfter(null);
+    },
   });
 
   return (
@@ -144,7 +163,7 @@ export function Chat({
               chatId={id}
               input={input}
               setInput={setInput}
-              handleSubmit={handleSubmit}
+              handleSubmit={handleSubmitWithPolling}
               status={status}
               stop={stop}
               attachments={attachments}
@@ -162,7 +181,7 @@ export function Chat({
         chatId={id}
         input={input}
         setInput={setInput}
-        handleSubmit={handleSubmit}
+        handleSubmit={handleSubmitWithPolling}
         status={status}
         stop={stop}
         attachments={attachments}
