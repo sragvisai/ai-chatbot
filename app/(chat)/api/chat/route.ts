@@ -88,17 +88,37 @@ export async function GET(request: Request) {
     return new ChatSDKError('forbidden:chat').toResponse();
   }
 
-  const msgs = await getMessagesByChatId({ id: chatId });
-  let startIndex = -1;
-  if (after) {
-    startIndex = msgs.findIndex((m) => m.id === after);
-  }
-  const next = msgs[startIndex + 1];
-  if (!next) {
-    return new Response(null, { status: 204 });
+  const backendUrl = process.env.LOCAL_BACKEND_URL;
+  if (backendUrl) {
+    try {
+      const url = new URL(`${backendUrl}/messages`);
+      url.searchParams.set('chatId', chatId);
+      if (after) url.searchParams.set('after', after);
+      const res = await fetch(url);
+      if (res.status === 200) {
+        const msg = await res.json();
+        if (msg) {
+          await saveMessages({
+            messages: [
+              {
+                id: msg.id,
+                chatId,
+                role: msg.role,
+                parts: msg.parts,
+                attachments: msg.attachments ?? [],
+                createdAt: new Date(msg.createdAt ?? Date.now()),
+              },
+            ],
+          });
+          return Response.json(msg, { status: 200 });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to poll backend', error);
+    }
   }
 
-  return Response.json(next, { status: 200 });
+  return new Response(null, { status: 204 });
 }
 
 export async function DELETE(request: Request) {
