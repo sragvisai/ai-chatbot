@@ -58,6 +58,7 @@ export async function POST(request: Request) {
   });
 
   const backendUrl = process.env.LOCAL_BACKEND_URL;
+  let returnedMessageId: string | null = null;
   if (backendUrl) {
     try {
       const res = await fetch(`${backendUrl}/messages`, {
@@ -69,13 +70,23 @@ export async function POST(request: Request) {
         console.error('Local backend responded with', res.status);
         return new Response(null, { status: 500 });
       }
+      try {
+        const data = await res.json();
+        if (data && data.messageId) {
+          returnedMessageId = String(data.messageId);
+        }
+      } catch {
+        // ignore JSON parsing errors
+      }
     } catch (error) {
       console.error('Failed to call local backend', error);
       return new Response(null, { status: 500 });
     }
   }
 
-  return Response.json({ status: 'accepted', messageId }, { status: 202 });
+  const idForClient = returnedMessageId ?? messageId;
+
+  return Response.json({ status: 'accepted', messageId: idForClient }, { status: 202 });
 }
 
 export async function GET(request: Request) {
