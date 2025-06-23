@@ -113,7 +113,7 @@ export async function GET(request: Request) {
           const msg = {
             id: data.messageId,
             role: 'assistant',
-            parts: [{ text: data.messageContent }],
+            parts: [{ type: 'text', text: data.messageContent }],
             attachments: [],
             createdAt: new Date(),
           };

@@ -117,7 +117,7 @@ export function Chat({
     const userMessage: UIMessage = {
       id: idForMessage,
       role: 'user',
-      parts: [{ text: input }],
+      parts: [{ type: 'text', text: input }],
       experimental_attachments: options?.experimental_attachments ?? [],
     };
 
