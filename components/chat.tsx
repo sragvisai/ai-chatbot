@@ -124,14 +124,14 @@ export function Chat({
     }
 
     const idForMessage = generateUUID();
-    const rawAttachments = options?.experimental_attachments;
-    const formattedAttachments: Attachment[] = Array.isArray(rawAttachments)
-      ? rawAttachments
-      : Array.from(rawAttachments ?? []);
+    const rawAttachments =
+      options?.experimental_attachments as Attachment[] | undefined;
+    const formattedAttachments: Attachment[] = rawAttachments ?? [];
 
     const userMessage: UIMessage = {
       id: idForMessage,
       role: 'user',
+      content: input,
       parts: [{ type: 'text', text: input }],
       experimental_attachments: formattedAttachments,
     };
