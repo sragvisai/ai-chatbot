@@ -95,6 +95,8 @@ export async function getChatsByUserId({
 }: {
   id: string;
   limit: number;
+  startingAfter: string | null;
+  endingBefore: string | null;
 }) {
   const filtered = chats.filter((c) => c.userId === id).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   return { chats: filtered.slice(0, limit), hasMore: filtered.length > limit };
