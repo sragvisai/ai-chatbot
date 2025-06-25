@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       const res = await fetch(`${backendUrl}/insertUserMessageForMarvin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId: id, myStudioSessionId : "1234" , "userId" : "1", message }),
+        body: JSON.stringify({ chatId: id, myStudioSessionId : "1234" , "userId" : "11", message }),
       });
       if (!res.ok) {
         console.error('Local backend responded with', res.status);
@@ -135,6 +135,8 @@ export async function GET(request: Request) {
       const url = new URL(`${backendUrl}/getMarvinMessages`);
       url.searchParams.set('chatId', chatId);
       if (after) url.searchParams.set('after', after);
+      url.searchParams.set('myStudioSessionId', '1234');
+      url.searchParams.set('userId', '11');
       const res = await fetch(url);
       console.log("Whohooo " + JSON.stringify(res));
       if (res.status === 200) {
