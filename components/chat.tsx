@@ -115,8 +115,13 @@ export function Chat({
   const [pollAfter, setPollAfter] = useState<string | null>(lastMessageId);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
-  const handleSubmitWithPolling: typeof handleSubmit = async (event, options) => {
-    event?.preventDefault();
+  const handleSubmitWithPolling: typeof handleSubmit = async (
+    event,
+    options,
+  ) => {
+    if (event && typeof (event as any).preventDefault === 'function') {
+      (event as any).preventDefault();
+    }
 
     const idForMessage = generateUUID();
     const userMessage: UIMessage = {
