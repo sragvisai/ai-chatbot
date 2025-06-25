@@ -11,28 +11,39 @@ import type { VisibilityType } from '@/components/visibility-selector';
 import { ChatSDKError } from '@/lib/errors';
 
 export async function POST(request: Request) {
-  let json: unknown;
+  console.log("POST Entry call  " + JSON.stringify(request));
+  let json;
   try {
     json = await request.json();
+    console.log("POST Entry call  " + JSON.stringify(json));
   } catch {
     return new ChatSDKError('bad_request:api').toResponse();
   }
 
-  let body: PostRequestBody;
-  try {
-    body = postRequestBodySchema.parse(json);
-  } catch {
-    return new ChatSDKError('bad_request:api').toResponse();
-  }
+  // let body: PostRequestBody;
+  // console.log("Body before try");
+  // try {
+  //   body = postRequestBodySchema.parse(json);
+  //   console.log("Body before try " + body);
+  // } catch {
+  //   console.log("New chatsdk error ");
+  //   return new ChatSDKError('bad_request:api').toResponse();
+  // }
 
   const session = await auth();
   if (!session?.user) {
+    console.log("Session error");
     return new ChatSDKError('unauthorized:chat').toResponse();
   }
 
-  const { id, message, selectedVisibilityType } = body;
+  // const { id, message, selectedVisibilityType } = body;
+
+  const id = json['id'];
+  const message = json['message']['parts'][0]['text'];
+  const selectedVisibilityType = "private";
 
   let chat = await getChatById({ id });
+  console.log("POST call chat - " + JSON.stringify(chat));
   if (!chat) {
     await saveChat({
       id,
@@ -61,10 +72,10 @@ export async function POST(request: Request) {
   let returnedMessageId: string | null = null;
   if (backendUrl) {
     try {
-      const res = await fetch(`${backendUrl}/messages`, {
+      const res = await fetch(`${backendUrl}/insertUserMessageForMarvin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId: id, message }),
+        body: JSON.stringify({ chatId: id, myStudioSessionId : "1234" , "userId" : "1", message }),
       });
       if (!res.ok) {
         console.error('Local backend responded with', res.status);
@@ -85,11 +96,13 @@ export async function POST(request: Request) {
   }
 
   const idForClient = returnedMessageId ?? messageId;
+  console.log("Returned Id for client  " + idForClient);
 
   return Response.json({ status: 'accepted', messageId: idForClient }, { status: 202 });
 }
 
 export async function GET(request: Request) {
+  console.log("GET Entry point");
   const { searchParams } = new URL(request.url);
   const chatId = searchParams.get('chatId');
   const after = searchParams.get('after');
@@ -100,25 +113,30 @@ export async function GET(request: Request) {
 
   const session = await auth();
   if (!session?.user) {
+    console.log("Session issue");
     return new ChatSDKError('unauthorized:chat').toResponse();
   }
 
   const chat = await getChatById({ id: chatId });
   if (!chat) {
+    console.log("chat issye");
     return new ChatSDKError('not_found:chat').toResponse();
   }
 
   if (chat.visibility === 'private' && chat.userId !== session.user.id) {
+    console.log("private issue");
     return new ChatSDKError('forbidden:chat').toResponse();
   }
 
   const backendUrl = process.env.LOCAL_BACKEND_URL;
+  console.log("Are you calling this " );
   if (backendUrl) {
     try {
-      const url = new URL(`${backendUrl}/messages`);
+      const url = new URL(`${backendUrl}/getMarvinMessages`);
       url.searchParams.set('chatId', chatId);
       if (after) url.searchParams.set('after', after);
       const res = await fetch(url);
+      console.log("Whohooo " + JSON.stringify(res));
       if (res.status === 200) {
         const data = await res.json();
         if (data && data.messageContent && data.messageId) {
