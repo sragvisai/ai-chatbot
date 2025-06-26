@@ -30,10 +30,9 @@ export async function POST(request: Request) {
   //   return new ChatSDKError('bad_request:api').toResponse();
   // }
 
-  const session = await auth();
-  if (!session?.user) {
-    console.log("Session error");
-    return new ChatSDKError('unauthorized:chat').toResponse();
+  const userId: string | undefined = json['userId'];
+  if (!userId) {
+    return new ChatSDKError('bad_request:api').toResponse();
   }
 
   // const { id, message, selectedVisibilityType } = body;
@@ -47,7 +46,7 @@ export async function POST(request: Request) {
   if (!chat) {
     await saveChat({
       id,
-      userId: session.user.id,
+      userId,
       title: (message.parts?.[0] as any)?.text || 'Chat',
       visibility: selectedVisibilityType as VisibilityType,
     });
@@ -75,7 +74,7 @@ export async function POST(request: Request) {
       const res = await fetch(`${backendUrl}/insertUserMessageForMarvin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId: id, myStudioSessionId : "1234" , "userId" : "11", message }),
+        body: JSON.stringify({ chatId: id, myStudioSessionId: '1234', userId, message }),
       });
       if (!res.ok) {
         console.error('Local backend responded with', res.status);
@@ -106,15 +105,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const chatId = searchParams.get('chatId');
   const after = searchParams.get('after');
+  const userId = searchParams.get('userId');
 
   if (!chatId) {
     return new ChatSDKError('bad_request:api').toResponse();
   }
 
-  const session = await auth();
-  if (!session?.user) {
-    console.log("Session issue");
-    return new ChatSDKError('unauthorized:chat').toResponse();
+  if (!userId) {
+    return new ChatSDKError('bad_request:api').toResponse();
   }
 
   const chat = await getChatById({ id: chatId });
@@ -123,7 +121,7 @@ export async function GET(request: Request) {
     return new ChatSDKError('not_found:chat').toResponse();
   }
 
-  if (chat.visibility === 'private' && chat.userId !== session.user.id) {
+  if (chat.visibility === 'private' && chat.userId !== userId) {
     console.log("private issue");
     return new ChatSDKError('forbidden:chat').toResponse();
   }
@@ -136,7 +134,7 @@ export async function GET(request: Request) {
       url.searchParams.set('chatId', chatId);
       if (after) url.searchParams.set('after', after);
       url.searchParams.set('myStudioSessionId', '1234');
-      url.searchParams.set('userId', '11');
+      url.searchParams.set('userId', userId);
       const res = await fetch(url);
       console.log("Whohooo " + JSON.stringify(res));
       if (res.status === 200) {

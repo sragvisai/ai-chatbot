@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { Chat } from '@/components/chat';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import { generateUUID } from '@/lib/utils';
-import { auth } from '../(auth)/auth';
+import { auth } from '../../(auth)/auth';
 import { redirect } from 'next/navigation';
 
 export default async function Page() {
@@ -17,6 +17,7 @@ export default async function Page() {
 
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get('chat-model');
+  const userIdFromCookie = cookieStore.get('userId');
 
   if (!modelIdFromCookie) {
     return (
@@ -29,6 +30,7 @@ export default async function Page() {
           initialVisibilityType="private"
           isReadonly={false}
           session={session}
+          userId={userIdFromCookie?.value ?? ''}
           autoResume={false}
         />
       </>
@@ -45,6 +47,7 @@ export default async function Page() {
         initialVisibilityType="private"
         isReadonly={false}
         session={session}
+        userId={userIdFromCookie?.value ?? ''}
         autoResume={false}
       />
     </>

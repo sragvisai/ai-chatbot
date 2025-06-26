@@ -3,16 +3,17 @@ import { useEffect } from 'react';
 export interface UseMessagePollingParams {
   chatId: string;
   after: string | null;
+  userId: string;
   onMessage: (msg: any) => void;
 }
 
-export function useMessagePolling({ chatId, after, onMessage }: UseMessagePollingParams) {
+export function useMessagePolling({ chatId, after, userId, onMessage }: UseMessagePollingParams) {
   useEffect(() => {
     if (!after) return;
     let cancelled = false;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/chat?chatId=${chatId}&after=${after}`);
+        const res = await fetch(`/api/chat?chatId=${chatId}&after=${after}&userId=${userId}`);
         if (res.status === 200) {
           const data = await res.json();
           if (!cancelled) {
@@ -29,5 +30,5 @@ export function useMessagePolling({ chatId, after, onMessage }: UseMessagePollin
       cancelled = true;
       clearInterval(interval);
     };
-  }, [chatId, after, onMessage]);
+  }, [chatId, after, userId, onMessage]);
 }
