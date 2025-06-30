@@ -20,9 +20,11 @@ export default function Page() {
       if (res.ok) {
         const data = await res.json();
         const userId = data.userId;
+        const userType = data.userType;
         if (userId) {
-          document.cookie = `userId=${userId}; path=/`;
+          document.cookie = `userId=${userId};userType=${userType}; path=/`;
           localStorage.setItem('userId', userId);
+          localStorage.setItem('userType', userType);
           router.push('/chat');
         }
       }
