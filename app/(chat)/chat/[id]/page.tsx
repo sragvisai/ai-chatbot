@@ -26,6 +26,10 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
   const userIdFromCookie = cookieStore.get('userId');
 
+  if (!userIdFromCookie || userIdFromCookie.value === '-1') {
+    redirect('/');
+  }
+
   if (chat.visibility === 'private') {
     if (!userIdFromCookie || userIdFromCookie.value !== chat.userId) {
       return notFound();

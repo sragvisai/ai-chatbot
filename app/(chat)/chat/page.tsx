@@ -19,6 +19,10 @@ export default async function Page() {
   const modelIdFromCookie = cookieStore.get('chat-model');
   const userIdFromCookie = cookieStore.get('userId');
 
+  if (!userIdFromCookie || userIdFromCookie.value === '-1') {
+    redirect('/');
+  }
+
   if (!modelIdFromCookie) {
     return (
       <>
