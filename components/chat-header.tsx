@@ -32,6 +32,16 @@ function PureChatHeader({
 
   const { width: windowWidth } = useWindowSize();
 
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to sign out?')) {
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userType');
+      document.cookie = 'userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = 'userType=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      router.push('/');
+    }
+  };
+
   return (
     <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
       <SidebarToggle />
@@ -82,6 +92,13 @@ function PureChatHeader({
           <VercelIcon size={16} />
           Deploy with Vercel
         </Link>
+      </Button>
+      <Button
+        variant="outline"
+        className="order-5"
+        onClick={handleLogout}
+      >
+        Logout
       </Button>
     </header>
   );

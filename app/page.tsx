@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,21 @@ export default function Page() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    const cookies = document.cookie.split(';').reduce<Record<string, string>>((acc, c) => {
+      const [key, value] = c.trim().split('=');
+      if (key && value) acc[key] = value;
+      return acc;
+    }, {});
+    const cookieUserId = cookies['userId'];
+    const cookieUserType = cookies['userType'];
+    if (cookieUserId && cookieUserType && cookieUserId !== '-1') {
+      localStorage.setItem('userId', cookieUserId);
+      localStorage.setItem('userType', cookieUserType);
+      router.replace('/chat');
+    }
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     console.log("handleSubmit - + page.tsx");
@@ -29,7 +44,10 @@ export default function Page() {
         console.log("page.tsx - Got the response from the user api " + JSON.stringify(data));
         console.log(`Response from the user api - ${userId} - ${userType}`);
         if (userId && userId !== '-1') {
-          document.cookie = `userId=${userId};userType=${userType}; path=/`;
+          document.cookie = `userId=${userId}; path=/`;
+          if (userType) {
+            document.cookie = `userType=${userType}; path=/`;
+          }
           localStorage.setItem('userId', userId);
           localStorage.setItem('userType', userType);
           router.push('/chat');
