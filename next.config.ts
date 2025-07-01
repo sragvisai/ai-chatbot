@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   experimental: {
     ppr: true,
   },
+  reactStrictMode : true,
   images: {
     remotePatterns: [
       {
