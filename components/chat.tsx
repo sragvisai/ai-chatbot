@@ -139,7 +139,8 @@ export function Chat({
       experimental_attachments: formattedAttachments,
     };
 
-    append(userMessage);
+    // append(userMessage);
+    setMessages((prev) => [...prev, userMessage]);
 
     setInput('');
 

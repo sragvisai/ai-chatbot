@@ -11,7 +11,6 @@ import type { VisibilityType } from '@/components/visibility-selector';
 import { ChatSDKError } from '@/lib/errors';
 
 export async function POST(request: Request) {
-  console.log("POST Entry call  " + JSON.stringify(request));
   let json;
   try {
     json = await request.json();
