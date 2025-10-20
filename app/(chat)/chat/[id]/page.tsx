@@ -23,12 +23,15 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     redirect('/api/auth/guest');
   }
 
-  if (chat.visibility === 'private') {
-    if (!session.user) {
-      return notFound();
-    }
+  const cookieStore = await cookies();
+  const userIdFromCookie = cookieStore.get('userId');
 
-    if (session.user.id !== chat.userId) {
+  if (!userIdFromCookie || userIdFromCookie.value === '-1') {
+    redirect('/');
+  }
+
+  if (chat.visibility === 'private') {
+    if (!userIdFromCookie || userIdFromCookie.value !== chat.userId) {
       return notFound();
     }
   }
@@ -50,7 +53,6 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     }));
   }
 
-  const cookieStore = await cookies();
   const chatModelFromCookie = cookieStore.get('chat-model');
 
   if (!chatModelFromCookie) {
@@ -63,6 +65,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
           initialVisibilityType={chat.visibility}
           isReadonly={session?.user?.id !== chat.userId}
           session={session}
+          userId={userIdFromCookie?.value ?? ''}
           autoResume={true}
         />
       </>
@@ -78,6 +81,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         initialVisibilityType={chat.visibility}
         isReadonly={session?.user?.id !== chat.userId}
         session={session}
+        userId={userIdFromCookie?.value ?? ''}
         autoResume={true}
       />
     </>

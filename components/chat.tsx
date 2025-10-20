@@ -30,6 +30,7 @@ export function Chat({
   initialVisibilityType,
   isReadonly,
   session,
+  userId,
   autoResume,
 }: {
   id: string;
@@ -38,6 +39,7 @@ export function Chat({
   initialVisibilityType: VisibilityType;
   isReadonly: boolean;
   session: Session;
+  userId: string;
   autoResume: boolean;
 }) {
   const { mutate } = useSWRConfig();
@@ -71,6 +73,7 @@ export function Chat({
       message: body.messages.at(-1),
       selectedChatModel: initialChatModel,
       selectedVisibilityType: visibilityType,
+      userId,
     }),
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
@@ -136,7 +139,8 @@ export function Chat({
       experimental_attachments: formattedAttachments,
     };
 
-    append(userMessage);
+    // append(userMessage);
+    setMessages((prev) => [...prev, userMessage]);
 
     setInput('');
 
@@ -148,6 +152,7 @@ export function Chat({
           id,
           message: userMessage,
           selectedVisibilityType: visibilityType,
+          userId,
         }),
       });
 
@@ -177,6 +182,7 @@ export function Chat({
   useMessagePolling({
     chatId: id,
     after: pollAfter,
+    userId,
     onMessage: (msg) => {
       setMessages((prev) => [...prev, msg]);
       setPollAfter(null);

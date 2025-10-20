@@ -28,7 +28,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         <SidebarMenu>
           <div className="flex flex-row justify-between items-center">
             <Link
-              href="/"
+              href="/chat"
               onClick={() => {
                 setOpenMobile(false);
               }}
@@ -46,7 +46,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   className="p-2 h-fit"
                   onClick={() => {
                     setOpenMobile(false);
-                    router.push('/');
+                    router.push('/chat');
                     router.refresh();
                   }}
                 >
